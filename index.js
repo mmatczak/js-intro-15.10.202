@@ -7,9 +7,12 @@ class Employee {
 }
 
 class EmployeeService {
+    idSequence = 1;
+
     constructor() {
-        this.employees = [new Employee(1, 'John', 'Doe'),
-            new Employee(2, 'Anna', 'Smith')];
+        this.employees = [
+            new Employee(this.idSequence++, 'John', 'Doe'),
+            new Employee(this.idSequence++, 'Anna', 'Smith')];
     }
 
     async findById(id) {
@@ -24,40 +27,63 @@ class EmployeeService {
             }, 1000);
         });
     }
+
+    async update(employee) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                this.employees = this.employees
+                    .map(e => e.id === employee.id ? employee : e);
+                resolve(employee);
+            }, 1000);
+        });
+    }
+}
+
+// MVVM - Model, View, View Model
+
+class EmployeeComponent {
+    constructor(employeeService, employeeId) {
+        this.employeeService = employeeService;
+        if (employeeId) {
+            this.loadEmployee(employeeId);
+        }
+        this.firstNameElement = document.getElementById('firstName');
+        this.lastNameElement = document.getElementById('lastName');
+        this.formElement = document.querySelector('form');
+        // this.formElement.addEventListener('submit', this.saveEmployee.bind(this));
+        this.formElement.addEventListener('submit', event => {
+            event.preventDefault();
+            this.saveEmployee.bind(this);
+        });
+    }
+
+    async loadEmployee(employeeId) {
+        this.employee = await this.employeeService.findById(employeeId);
+        this.firstNameElement.value = this.employee.firstName;
+        this.lastNameElement.value = this.employee.lastName;
+    }
+
+    async saveEmployee() {
+        const firstName = this.firstNameElement.value;
+        const lastName = this.lastNameElement.value;
+        const updatedEmployee = {...this.employee, firstName, lastName}
+        await this.employeeService.update(updatedEmployee);
+        console.log('Employee updated');
+        await this.loadEmployee(updatedEmployee.id);
+        console.log('Employee newly loaded');
+    }
 }
 
 const employees = new EmployeeService();
-// old callback style
-// employees.findById(1, function (employee) {
-//     console.log(employee);
-// })
+const employeeComponent = new EmployeeComponent(employees, 1);
 
-// classical promise style
-// employees.findById(3)
-//     .then(employee => {
-//         console.log(employee);
-//         return employee;
-//     })
-//     .catch(e => {
-//         console.log(e.message);
-//     });
+// JavaScript A - apply, B - bind,  C - call
 
-// async/await style
-async function callMe() {
-    try {
-        const employee = await employees.findById(1)
-        console.log(employee);
-    } catch (e) {
-        console.log(e.message);
-    }
-}
-callMe()
-
-// sync style
-// try {
-//     const employee = employees.findById(3);
-// } catch (e) {
-//     console.log(e.message);
-//     // throw new Error(e);
-//     return 0;
+// function foo(arg1) {
+//     console.log(arg1);
+//     console.log(this);
 // }
+// foo('Hello');
+// foo.call({name: 'this'}, 'Hello');
+// foo.apply({name: 'this'}, ['Hello']);
+
