@@ -1,32 +1,63 @@
-const myNumbers = [1, 2, 3, 4, 5];
-
-let sum = 0;
-for (let i = 0; i < myNumbers.length; i++) {
-    const currentNumber = myNumbers[i];
-    if (vatAware(currentNumber)) {
-        sum += calculateVat(currentNumber);
+class Employee {
+    constructor(id, firstName, lastName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 }
 
-const sum2 = myNumbers
-    .filter(vatAware)
-    .map(calculateVat)
-    .reduce(sumVatOfPositions, 0);
+class EmployeeService {
+    constructor() {
+        this.employees = [new Employee(1, 'John', 'Doe'),
+            new Employee(2, 'Anna', 'Smith')];
+    }
 
-console.log(sum);
-console.log(sum2);
-
-function sumVatOfPositions(sum, currentVat) {
-  return sum + currentVat;
+    async findById(id) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                const employee = this.employees.find(employee => employee.id === id)
+                if (employee) {
+                    resolve(employee);
+                } else {
+                    reject(new Error('Employee not found'));
+                }
+            }, 1000);
+        });
+    }
 }
 
-function calculateVat(value) {
-    return value * 0.23;
+const employees = new EmployeeService();
+// old callback style
+// employees.findById(1, function (employee) {
+//     console.log(employee);
+// })
+
+// classical promise style
+// employees.findById(3)
+//     .then(employee => {
+//         console.log(employee);
+//         return employee;
+//     })
+//     .catch(e => {
+//         console.log(e.message);
+//     });
+
+// async/await style
+async function callMe() {
+    try {
+        const employee = await employees.findById(1)
+        console.log(employee);
+    } catch (e) {
+        console.log(e.message);
+    }
 }
+callMe()
 
-function vatAware(value) {
-    const threshold = 2;
-    return value > threshold;
-}
-
-
+// sync style
+// try {
+//     const employee = employees.findById(3);
+// } catch (e) {
+//     console.log(e.message);
+//     // throw new Error(e);
+//     return 0;
+// }
